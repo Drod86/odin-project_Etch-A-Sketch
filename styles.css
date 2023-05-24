@@ -1,0 +1,30 @@
+.container {
+  border: 20px solid red;
+  border-radius: 20px;
+  display: grid;
+  margin: 30px;
+  width: 960px;
+  height: 960px;
+  grid-template-columns: repeat(100, 1fr);
+  grid-template-rows: repeat(100, 1fr);
+}
+
+.item {
+  grid-area: auto;
+}
+
+.black {
+  background-color: black;
+}
+
+.gridSize {
+  position: absolute;
+  top: 5px;
+  left: 845px;
+}
+
+.clear {
+  position: absolute;
+  top: 5px;
+  left: 55px;
+}
