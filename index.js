@@ -1,88 +1,82 @@
-const BODY = document.querySelector("body");
-BODY.innerHTML += `<button class="gridSize">Change the grid size here.</button><button class="clear">Clear</button><div class='chooseColor'><h3>Choose paint color:</h3><button class="chooseBlack">Black</button><button class="rainbow">Rainbow</button><button class="shadesOfGray">Shades of Gray</button></div>`;
+// DOM Helper Functions //
+const grab = (selector) => document.querySelector(selector);
+const grabAll = (selector) => document.querySelectorAll(selector);
+const render = (domElement, content, add = false) => {
+  const str =
+    typeof content === "string"
+      ? content
+      : content.reduce((acc, str) => (acc += str), ``);
+  add ? (domElement.innerHTML += str) : (domElement.innerHTML = str);
+};
+// events
+const click = (node, callback) => node.addEventListener("click", callback);
+const mouseover = (node, callback) =>
+  node.addEventListener("mouseover", callback);
 
+// HTML Elements creators //
+const div = (className, content = "") =>
+  `<div class="${className}">${
+    typeof content === "string"
+      ? content
+      : content.reduce((acc, str) => (acc += str), ``)
+  }</div>`;
+const btn = (className, text) =>
+  `<button class="${className}">${text}</button>`;
+const heading = (size = 1, text) => `<h${size}>${text}</h${size}>`;
+//////////////////////////
+
+// App elements //
+const gridSizeBtn = btn("gridSize", "Change the grid size here.");
+const clearBtn = btn("clear", "Clear");
+const chooseColorHeading = heading(3, "Choose paint color");
+const chooseBlackBtn = btn("chooseBlack", "Black");
+const chooseRainbowBtn = btn("rainbow", "Rainbow");
+const chooseShadesOfGrayBtn = btn("shadesOfGray", "Shades of Gray");
+const chooseColorSection = div("chooseColor", [
+  chooseColorHeading,
+  chooseBlackBtn,
+  chooseRainbowBtn,
+  chooseShadesOfGrayBtn,
+]);
+
+// state
+let gridSize = 100;
+let paintColor = 0;
+
+// Functions //
 // Create the Grid
-const addGridItems = (num) => {
+const buildGrid = (num) => {
   let numItems = num * num;
   let items = "";
   for (let i = 1; i <= numItems; i++) {
-    items = items.concat(`<div class="item item--${i}"></div>`);
+    items = items.concat(div(`item item--${i}`));
   }
   return items;
 };
-let gridSize = 100;
-const gridContainer = document.querySelector(".container");
-gridContainer.innerHTML = addGridItems(gridSize);
 
-// Sketch functionality -- manipulate background color
-// functions to manipulate the background
-const toBlack = (div) => div.classList.add("black");
-const toRandomColor = (div) => {
-  const random =
-    Math.floor(Math.random() * 180) + Math.floor(Math.random() * 180);
-  div.setAttribute("style", `background-color: hsla(${random}, 100%, 50%, 1);`);
-};
-const toShadesOfGray = (div) => {
-  const isShaded = div.attributes.length;
-  if (isShaded === 1) {
-    div.setAttribute("style", `background-color: hsla(0, 0%, ${90}%, 1);`);
-  } else {
-    for (const attr of div.attributes) {
-      if (attr.name === "style") {
-        const light = Number(attr.value.substr(30, 2));
-        if (!isNaN(light))
-          div.setAttribute(
-            "style",
-            `background-color: hsla(0, 0%, ${light - 10}%, 1);`
-          );
-      }
-    }
-  }
-};
-
-// choose the color to sketch with
-const blackBtn = document.querySelector(".chooseBlack");
-const rainbowBtn = document.querySelector(".rainbow");
-const shadesOfGrayBtn = document.querySelector(".shadesOfGray");
-let paintColor = 0;
-const colorChoices = [blackBtn, rainbowBtn, shadesOfGrayBtn];
-colorChoices.forEach((btn, i) =>
-  btn.addEventListener("click", () => (paintColor = i))
-);
-
-//grab the grid cells
-const divs = document.querySelectorAll(".item");
-
-// Sketch functionality
-divs.forEach((div) =>
-  div.addEventListener("mouseover", (e) => {
-    paintColor === 0
-      ? toBlack(div)
-      : paintColor === 1
-      ? toRandomColor(div)
-      : toShadesOfGray(div);
-  })
-);
-
-// button to change the grid size or pixel scale
+// change the grid size
 const changeGridSize = () => {
-  divs.forEach((div) => div.classList.remove("black"));
+  // clear the background
+  clearGrid();
+  // get the new size from user
   gridSize = parseInt(
     prompt("Enter an number between 10 and 100 to resize the grid", ""),
-    10
+    ""
   );
-  let isNum = typeof gridSize === "number" && gridSize <= 100 && gridSize >= 10;
+  const validateEntry = (entry) =>
+    typeof entry === "number" && entry <= 100 && entry >= 10;
+  let isNum = validateEntry(gridSize);
   while (!isNum) {
     gridSize = parseInt(
       prompt(
         "Invalid entry --- Enter an number between 10 and 100 to resize the grid",
         ""
       ),
-      10
+      ""
     );
-    isNum = typeof gridSize === "number" && gridSize <= 100 && gridSize >= 10;
+    isNum = validateEntry(gridSize);
   }
-  addGridItems(gridSize);
+  buildGrid(gridSize);
   gridContainer.setAttribute(
     "style",
     `grid-template-columns: repeat(${gridSize}, 1fr);
@@ -90,16 +84,65 @@ const changeGridSize = () => {
   );
 };
 
-const changeGridSizeBtn = document.querySelector(".gridSize");
+// functions to manipulate the background
+const backgroundColor = (h = 0, s = 0, l = 50, a = 1) =>
+  `background-color: hsla(${h}, ${s}%, ${l}%, ${a});`;
 
-changeGridSizeBtn.addEventListener("click", changeGridSize);
+const toBlack = (div) => div.classList.add("black");
 
-/// clear
-const clearBtn = document.querySelector(".clear");
+const toRandomColor = (div) => {
+  const random =
+    Math.floor(Math.random() * 180) + Math.floor(Math.random() * 180);
+  div.setAttribute("style", backgroundColor(random, 100, 50));
+};
 
-clearBtn.addEventListener("click", () => {
-  divs.forEach((div) => {
+const toShadesOfGray = (div) => {
+  const isShaded = div.attributes.length;
+  if (isShaded === 1) {
+    div.setAttribute("style", backgroundColor(0, 0, 90));
+  } else {
+    for (const attr of div.attributes) {
+      if (attr.name === "style") {
+        const light = Number(attr.value.substr(30, 2));
+        const isNumber = !isNaN(light);
+        if (isNumber)
+          div.setAttribute("style", backgroundColor(0, 0, light - 10));
+      }
+    }
+  }
+};
+
+const clearGrid = () => {
+  cells.forEach((div) => {
     div.classList.remove("black");
     div.attributes.length > 1 && div.attributes.removeNamedItem("style");
   });
-});
+};
+
+// Render the app //
+const BODY = grab("body");
+render(BODY, [clearBtn, chooseColorSection, gridSizeBtn], true);
+const gridContainer = grab(".container");
+render(gridContainer, buildGrid(gridSize));
+const cells = grabAll(".item"); //grab the grid cells
+const changeGridSizeBtn = grab(".gridSize");
+const blackBtn = grab(".chooseBlack"); // choose the color to sketch with
+const rainbowBtn = grab(".rainbow");
+const shadesOfGrayBtn = grab(".shadesOfGray");
+const colorChoices = [blackBtn, rainbowBtn, shadesOfGrayBtn];
+const clearBtnNode = document.querySelector(".clear");
+colorChoices.forEach((btn, i) => click(btn, () => (paintColor = i))); // listen for clicks
+
+// Listeners //
+cells.forEach((cell) =>
+  // Sketch functionality
+  mouseover(cell, () => {
+    paintColor === 0
+      ? toBlack(cell)
+      : paintColor === 1
+      ? toRandomColor(cell)
+      : toShadesOfGray(cell);
+  })
+);
+click(changeGridSizeBtn, changeGridSize); // change grid size
+click(clearBtnNode, clearGrid); /// clear
