@@ -40,8 +40,7 @@ const chooseColorSection = div("chooseColor", [
 ]);
 
 // state
-let gridSize = 100;
-let paintColor = 0;
+const state = { gridSize: 100, paintColor: 0 };
 
 // Functions //
 // Create the Grid
@@ -58,6 +57,7 @@ const buildGrid = (num) => {
 const changeGridSize = () => {
   // clear the background
   clearGrid();
+
   // get the new size from user
   gridSize = parseInt(
     prompt("Enter an number between 10 and 100 to resize the grid", ""),
@@ -76,7 +76,10 @@ const changeGridSize = () => {
     );
     isNum = validateEntry(gridSize);
   }
+
+  // build the grid
   buildGrid(gridSize);
+  // scale the ui to the new grid size
   gridContainer.setAttribute(
     "style",
     `grid-template-columns: repeat(${gridSize}, 1fr);
@@ -97,16 +100,16 @@ const toRandomColor = (div) => {
 };
 
 const toShadesOfGray = (div) => {
-  const isShaded = div.attributes.length;
-  if (isShaded === 1) {
-    div.setAttribute("style", backgroundColor(0, 0, 90));
+  const isNotShaded = div.attributes.length === 1;
+  if (isNotShaded) {
+    div.setAttribute("style", backgroundColor(...[, ,], 90));
   } else {
     for (const attr of div.attributes) {
       if (attr.name === "style") {
         const light = Number(attr.value.substr(30, 2));
         const isNumber = !isNaN(light);
         if (isNumber)
-          div.setAttribute("style", backgroundColor(0, 0, light - 10));
+          div.setAttribute("style", backgroundColor(...[, ,], light - 10));
       }
     }
   }
@@ -120,6 +123,7 @@ const clearGrid = () => {
 };
 
 // Render the app //
+let { gridSize, paintColor } = state;
 const BODY = grab("body");
 render(BODY, [clearBtn, chooseColorSection, gridSizeBtn], true);
 const gridContainer = grab(".container");
